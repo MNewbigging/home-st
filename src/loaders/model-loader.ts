@@ -52,5 +52,10 @@ export class ModelLoader {
 
       this.models.set("box", gltf.scene);
     });
+
+    const houseUrl = new URL("/houseModel.glb", import.meta.url).href;
+    gltfLoader.load(houseUrl, (gltf) => {
+      this.models.set("house", gltf.scene);
+    });
   }
 }

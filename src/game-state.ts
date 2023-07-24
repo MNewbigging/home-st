@@ -48,11 +48,11 @@ export class GameState {
     const directLight = new THREE.DirectionalLight();
     this.scene.add(directLight);
 
-    // Add box
-    const box = this.gameLoader.modelLoader.get("box");
-    if (box) {
-      addGui(box, "box");
-      this.scene.add(box);
+    // Add house model
+    const house = this.gameLoader.modelLoader.get("house");
+    if (house) {
+      addGui(house, "box");
+      this.scene.add(house);
     }
 
     // Start game
