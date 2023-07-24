@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import { GameLoader } from "./loaders/game-loader";
@@ -10,6 +9,8 @@ export class GameState {
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
   private controls: OrbitControls;
+
+  private house?: THREE.Object3D;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -51,12 +52,34 @@ export class GameState {
     // Add house model
     const house = this.gameLoader.modelLoader.get("house");
     if (house) {
-      addGui(house, "box");
+      this.house = house;
       this.scene.add(house);
     }
 
+    // Setup player
+    this.setInitialPosition();
+
     // Start game
     this.update();
+  }
+
+  private setInitialPosition() {
+    if (!this.house) {
+      return;
+    }
+
+    // Find the first selection ring
+    const ring = this.house.getObjectByName("ring-outside-front");
+    if (!ring) {
+      return;
+    }
+
+    // Move slightly above it
+    this.camera.position.set(
+      ring.position.x,
+      ring.position.y + 1.7,
+      ring.position.z
+    );
   }
 
   private onCanvasResize = () => {
