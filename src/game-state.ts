@@ -3,16 +3,19 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import { FixedCameraController } from "./cameras/fixed-camera-controller";
 import { GameLoader } from "./loaders/game-loader";
+import { KeyboardListener } from "./listeners/keyboard-listener";
 import { MouseListener } from "./listeners/mouse-listener";
 import { addGui } from "./utils/utils";
 
 export class GameState {
   private mouseListener: MouseListener;
+  private keyboardListener: KeyboardListener;
   private fixedCameraController: FixedCameraController;
 
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
+  private clock = new THREE.Clock();
 
   private house?: THREE.Object3D;
 
@@ -20,7 +23,9 @@ export class GameState {
     private canvas: HTMLCanvasElement,
     private gameLoader: GameLoader
   ) {
+    // Listeners
     this.mouseListener = new MouseListener(canvas);
+    this.keyboardListener = new KeyboardListener();
 
     // Setup camera
     this.camera = new THREE.PerspectiveCamera(
@@ -30,10 +35,7 @@ export class GameState {
       100
     );
     
-
-    this.fixedCameraController = new FixedCameraController(this.mouseListener, this.camera);
-
-    addGui(this.camera);
+    this.fixedCameraController = new FixedCameraController(this.mouseListener, this.keyboardListener, this.camera);
 
     // Setup renderer
     this.renderer = new THREE.WebGLRenderer({ canvas });
@@ -61,6 +63,16 @@ export class GameState {
       this.house = house;
       this.scene.add(house);
     }
+
+    // Add basic floor plane
+    const floorPlane = new THREE.PlaneGeometry(10, 10);
+    const floorMat = new THREE.MeshBasicMaterial({ color: 'grey' });
+    const floorMesh = new THREE.Mesh(floorPlane, floorMat);
+    floorMesh.rotation.x = -Math.PI / 2;
+    floorMesh.position.y = -0.001;
+    this.scene.add(floorMesh);
+
+    addGui(floorMesh);
 
     // Setup player
     this.setInitialPosition();
@@ -105,7 +117,9 @@ export class GameState {
   private update = () => {
     requestAnimationFrame(this.update);
 
-    this.fixedCameraController.update();
+    const dt = this.clock.getDelta();
+
+    this.fixedCameraController.update(dt);
     this.renderer.render(this.scene, this.camera);
   };
 }
