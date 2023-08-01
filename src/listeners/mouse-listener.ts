@@ -34,6 +34,7 @@ export class MouseListener {
 
   private pointerDownEvent?: PointerEvent;
   private previousPosition: Point = { x: 0, y: 0 };
+  private readonly clickMovementTolerance = 5;
 
   private callbacks = new Map<MouseEventType, MouseEventCallback[]>();
 
@@ -79,6 +80,22 @@ export class MouseListener {
   };
 
   private readonly handleMouseUp = (event: PointerEvent) => {
+    this.clickPosition = this.getMouseEventPosition(event);
+    
+    if (!this.pointerDownEvent) {
+      return;
+    }
+
+    if(this.movedLessThan(this.pointerDownEvent, event, this.clickMovementTolerance)) {
+      // Clicked
+      const button = this.getMouseButtonFrom(event);
+      if (button === MouseButton.LEFT) {
+        this.triggerCallbacks('leftclick');
+      }
+    } else {
+      // Drag end
+    }
+    
     this.pointerDownEvent = undefined;
   };
 
@@ -124,6 +141,12 @@ export class MouseListener {
     }
 
     return undefined;
+  }
+
+  private movedLessThan(a: MouseEvent, b: MouseEvent, radius: number): boolean {
+    return (
+      (a.clientX - b.clientX) * (a.clientX - b.clientX) + (a.clientY - b.clientY) *  (a.clientY - b.clientY) < radius * radius
+    );
   }
 
   private triggerCallbacks(eventType: MouseEventType) {

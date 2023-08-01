@@ -1,5 +1,6 @@
 import * as THREE from "three";
 
+import { Intersecter } from "../utils/intersecter";
 import { KeyboardListener } from "../listeners/keyboard-listener";
 import { MouseListener } from "../listeners/mouse-listener";
 
@@ -18,6 +19,7 @@ export class FixedCameraController {
   constructor(
     private mouseListener: MouseListener,
     private keyboardListener: KeyboardListener,
+    private intersecter: Intersecter,
     private camera: THREE.Camera
   ) {
     // Enabled by default
@@ -27,6 +29,7 @@ export class FixedCameraController {
   enable() {
     this.mouseListener.on("leftclickdrag", this.onLeftClickDrag);
     this.mouseListener.canvasElement.addEventListener('wheel', this.onWheel);
+    this.mouseListener.on('leftclick', this.onLeftClick);
   }
 
   update(dt: number) {
@@ -76,5 +79,16 @@ export class FixedCameraController {
 
   private onWheel = (event: WheelEvent) => {
     this.wheelDelta = -Math.sign(event.deltaY);
+  };
+
+  private onLeftClick = () => {
+    // Get intersected object
+    const intersection = this.intersecter.getIntersection(this.mouseListener.clickPosition.normalised);
+    if (!intersection) {
+      return;
+    }
+    
+    // Move camera near the intersection
+    this.camera.position.lerp(intersection.point, 0.8);
   };
 }

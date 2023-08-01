@@ -3,6 +3,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import { FixedCameraController } from "./cameras/fixed-camera-controller";
 import { GameLoader } from "./loaders/game-loader";
+import { Intersecter } from "./utils/intersecter";
 import { KeyboardListener } from "./listeners/keyboard-listener";
 import { MouseListener } from "./listeners/mouse-listener";
 import { addGui } from "./utils/utils";
@@ -10,6 +11,8 @@ import { addGui } from "./utils/utils";
 export class GameState {
   private mouseListener: MouseListener;
   private keyboardListener: KeyboardListener;
+  private intersecter: Intersecter;
+
   private fixedCameraController: FixedCameraController;
 
   private scene = new THREE.Scene();
@@ -27,6 +30,8 @@ export class GameState {
     this.mouseListener = new MouseListener(canvas);
     this.keyboardListener = new KeyboardListener();
 
+    
+
     // Setup camera
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -35,7 +40,9 @@ export class GameState {
       100
     );
     
-    this.fixedCameraController = new FixedCameraController(this.mouseListener, this.keyboardListener, this.camera);
+
+    this.intersecter = new Intersecter(this.scene, this.camera);
+    this.fixedCameraController = new FixedCameraController(this.mouseListener, this.keyboardListener, this.intersecter, this.camera);
 
     // Setup renderer
     this.renderer = new THREE.WebGLRenderer({ canvas });
