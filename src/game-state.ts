@@ -1,14 +1,18 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
+import { FixedCameraController } from "./cameras/fixed-camera-controller";
 import { GameLoader } from "./loaders/game-loader";
+import { MouseListener } from "./listeners/mouse-listener";
 import { addGui } from "./utils/utils";
 
 export class GameState {
+  private mouseListener: MouseListener;
+  private fixedCameraController: FixedCameraController;
+
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
-  private controls: OrbitControls;
 
   private house?: THREE.Object3D;
 
@@ -16,6 +20,8 @@ export class GameState {
     private canvas: HTMLCanvasElement,
     private gameLoader: GameLoader
   ) {
+    this.mouseListener = new MouseListener(canvas);
+
     // Setup camera
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -23,8 +29,11 @@ export class GameState {
       0.1,
       100
     );
-    this.camera.position.z = 1.6;
-    this.camera.position.y = 1.2;
+    
+
+    this.fixedCameraController = new FixedCameraController(this.mouseListener, this.camera);
+
+    addGui(this.camera);
 
     // Setup renderer
     this.renderer = new THREE.WebGLRenderer({ canvas });
@@ -38,9 +47,6 @@ export class GameState {
     this.onCanvasResize();
 
     this.scene.background = new THREE.Color("#1680AF");
-
-    this.controls = new OrbitControls(this.camera, canvas);
-    this.controls.enableDamping = true;
 
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -99,7 +105,7 @@ export class GameState {
   private update = () => {
     requestAnimationFrame(this.update);
 
+    this.fixedCameraController.update();
     this.renderer.render(this.scene, this.camera);
-    this.controls.update();
   };
 }
