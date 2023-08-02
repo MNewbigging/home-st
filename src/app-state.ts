@@ -21,6 +21,11 @@ export class AppState {
       return;
     }
 
+    canvas.oncontextmenu = (event) => {
+      event.stopPropagation();
+      event.preventDefault();
+    };
+
     this.gameState = new GameState(canvas, this.gameLoader);
   };
 }

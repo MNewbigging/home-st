@@ -81,21 +81,32 @@ export class MouseListener {
 
   private readonly handleMouseUp = (event: PointerEvent) => {
     this.clickPosition = this.getMouseEventPosition(event);
-    
+
     if (!this.pointerDownEvent) {
       return;
     }
 
-    if(this.movedLessThan(this.pointerDownEvent, event, this.clickMovementTolerance)) {
+    if (
+      this.movedLessThan(
+        this.pointerDownEvent,
+        event,
+        this.clickMovementTolerance
+      )
+    ) {
       // Clicked
       const button = this.getMouseButtonFrom(event);
-      if (button === MouseButton.LEFT) {
-        this.triggerCallbacks('leftclick');
+      switch (button) {
+        case MouseButton.LEFT:
+          this.triggerCallbacks("leftclick");
+          break;
+        case MouseButton.RIGHT:
+          this.triggerCallbacks("rightclick");
+          break;
       }
     } else {
       // Drag end
     }
-    
+
     this.pointerDownEvent = undefined;
   };
 
@@ -145,7 +156,9 @@ export class MouseListener {
 
   private movedLessThan(a: MouseEvent, b: MouseEvent, radius: number): boolean {
     return (
-      (a.clientX - b.clientX) * (a.clientX - b.clientX) + (a.clientY - b.clientY) *  (a.clientY - b.clientY) < radius * radius
+      (a.clientX - b.clientX) * (a.clientX - b.clientX) +
+        (a.clientY - b.clientY) * (a.clientY - b.clientY) <
+      radius * radius
     );
   }
 

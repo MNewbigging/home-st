@@ -5,8 +5,8 @@ import { KeyboardListener } from "../listeners/keyboard-listener";
 import { MouseListener } from "../listeners/mouse-listener";
 
 export class FixedCameraController {
-  private readonly lookDampingFactor = 0.07; 
-  private spherical = new THREE.Spherical(1, Math.PI  / 2);
+  private readonly lookDampingFactor = 0.07;
+  private spherical = new THREE.Spherical(1, Math.PI / 2);
   private sphericalDelta = new THREE.Spherical();
   private target = new THREE.Vector3();
   private readonly epsilon = 1e-3;
@@ -20,7 +20,7 @@ export class FixedCameraController {
     private mouseListener: MouseListener,
     private keyboardListener: KeyboardListener,
     private intersecter: Intersecter,
-    private camera: THREE.Camera
+    private camera: THREE.PerspectiveCamera
   ) {
     // Enabled by default
     this.enable();
@@ -28,8 +28,8 @@ export class FixedCameraController {
 
   enable() {
     this.mouseListener.on("leftclickdrag", this.onLeftClickDrag);
-    this.mouseListener.canvasElement.addEventListener('wheel', this.onWheel);
-    this.mouseListener.on('leftclick', this.onLeftClick);
+    this.mouseListener.canvasElement.addEventListener("wheel", this.onWheel);
+    this.mouseListener.on("rightclick", this.onRightClick);
   }
 
   update(dt: number) {
@@ -42,7 +42,9 @@ export class FixedCameraController {
     this.spherical.makeSafe();
 
     // Update camera
-    const newTarget = new THREE.Vector3().setFromSpherical(this.spherical).add(this.camera.position);
+    const newTarget = new THREE.Vector3()
+      .setFromSpherical(this.spherical)
+      .add(this.camera.position);
 
     if (this.target.sub(newTarget).length() > this.epsilon) {
       this.camera.lookAt(newTarget);
@@ -56,9 +58,13 @@ export class FixedCameraController {
     const facingDirection = new THREE.Vector3();
     this.camera.getWorldDirection(facingDirection);
 
-    const speed = this.keyboardListener.isKeyPressed('shift') ? this.wheelMoveSpeedFast : this.wheelMoveSpeedSlow;
+    const speed = this.keyboardListener.isKeyPressed("shift")
+      ? this.wheelMoveSpeedFast
+      : this.wheelMoveSpeedSlow;
 
-    const moveStep = facingDirection.multiplyScalar(this.wheelDelta * speed * dt);
+    const moveStep = facingDirection.multiplyScalar(
+      this.wheelDelta * speed * dt
+    );
     this.camera.position.add(moveStep);
 
     this.wheelDelta *= 1 - this.wheelDampingFactor;
@@ -71,23 +77,33 @@ export class FixedCameraController {
     const { movePosition, canvasElement } = this.mouseListener;
 
     this.sphericalDelta.theta +=
-      (2 * Math.PI * this.mouseSensitivity * movePosition.delta.x) / canvasElement.clientWidth;
+      (2 * Math.PI * this.mouseSensitivity * movePosition.delta.x) /
+      canvasElement.clientWidth;
 
     this.sphericalDelta.phi -=
-      (Math.PI * this.mouseSensitivity * movePosition.delta.y) / canvasElement.clientHeight;
+      (Math.PI * this.mouseSensitivity * movePosition.delta.y) /
+      canvasElement.clientHeight;
   };
 
   private onWheel = (event: WheelEvent) => {
     this.wheelDelta = -Math.sign(event.deltaY);
   };
 
-  private onLeftClick = () => {
+  private onRightClick = () => {
     // Get intersected object
-    const intersection = this.intersecter.getIntersection(this.mouseListener.clickPosition.normalised);
+    const intersection = this.intersecter.getIntersection(
+      this.mouseListener.clickPosition.normalised
+    );
     if (!intersection) {
       return;
     }
-    
+
+    // Make sure we don't move closer than the camera near plane
+    const distance = this.camera.position.distanceTo(intersection.point);
+    if (distance < this.camera.near * 3) {
+      return;
+    }
+
     // Move camera near the intersection
     this.camera.position.lerp(intersection.point, 0.8);
   };
