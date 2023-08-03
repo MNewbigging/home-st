@@ -3,6 +3,8 @@ import { MouseListener } from "../listeners/mouse-listener";
 import { Renderer } from "./renderer";
 
 export class InteractiveItems {
+  private readonly interactiveItems = ["Front_door"];
+
   constructor(
     private mouseListener: MouseListener,
     private intersecter: Intersecter,
@@ -23,7 +25,17 @@ export class InteractiveItems {
       return;
     }
 
-    // Highlight intersected object
-    this.renderer.outlineObject(intersection.object);
+    // Was the object intersected interactive?
+    const name = intersection.object.parent?.name;
+    if (!name) {
+      return;
+    }
+
+    if (this.interactiveItems.includes(name)) {
+      // Highlight all children of the intersected object's parent
+      intersection.object.parent?.children.forEach((child) =>
+        this.renderer.outlineObject(child)
+      );
+    }
   };
 }

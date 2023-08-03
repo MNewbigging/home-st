@@ -118,10 +118,5 @@ export class GameState {
     this.fixedCameraController.update(dt);
 
     this.renderer.render(dt);
-
-    // Post render
-
-    // Clear outline pass
-    //this.renderer.clearOutlines();
   };
 }
