@@ -1,7 +1,11 @@
 import { Point } from "../utils/common-types";
 
 export type MouseEventCallback = () => void;
-export type MouseEventType = "leftclick" | "rightclick" | "leftclickdrag";
+export type MouseEventType =
+  | "leftclick"
+  | "rightclick"
+  | "leftclickdrag"
+  | "move";
 
 enum MouseButton {
   LEFT,
@@ -76,6 +80,8 @@ export class MouseListener {
       if (button === MouseButton.LEFT) {
         this.triggerCallbacks("leftclickdrag");
       }
+    } else {
+      this.triggerCallbacks("move");
     }
   };
 

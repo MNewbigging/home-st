@@ -1,4 +1,4 @@
-import { GameLoader } from "./loaders/game-loader";
+import { GameLoader } from "../loaders/game-loader";
 import { GameState } from "./game-state";
 
 export class AppState {
