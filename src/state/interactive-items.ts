@@ -22,6 +22,19 @@ export class InteractiveItems {
     "Bedroom1_door",
     "Bedroom2_door",
     "Landing_cupboard_door",
+    "Study_window_base",
+    "Study_window_top",
+    "Livingroom_window_base_left",
+    "Livingroom_window_base_mid",
+    "Livingroom_window_base_right",
+    "Livingroom_window_top_left",
+    "Livingroom_window_top_mid",
+    "Livingroom_window_top_right",
+    "Bedroom1_window",
+    "Bedroom2_window",
+    "Kitchen_window_left",
+    "Kitchen_window_right",
+    "Bathroom_window",
   ];
 
   private readonly doorOpenRadians = 1.48353;
@@ -106,6 +119,7 @@ export class InteractiveItems {
 
     // Interact with the item
     switch (name) {
+      // Doors
       case "Living_room_door":
       case "Livingroom_cupboard_door_right":
       case "Back_hall_door":
@@ -125,53 +139,87 @@ export class InteractiveItems {
       case "Bedroom2_door":
         this.interactDoor(object, true);
         break;
+
+      // Sash Windows
+      case "Study_window_base":
+      case "Livingroom_window_base_left":
+      case "Livingroom_window_base_mid":
+      case "Livingroom_window_base_right":
+        this.interactSashWindow(object);
+        break;
+      case "Study_window_top":
+      case "Livingroom_window_top_left":
+      case "Livingroom_window_top_mid":
+      case "Livingroom_window_top_right":
+        this.interactSashWindow(object, true);
+        break;
+
+      // Normal windows
+      case "Bedroom1_window":
+      case "Bedroom2_window":
+        this.interactWindow(object);
+        break;
+      case "Kitchen_window_left":
+      case "Kitchen_window_right":
+      case "Bathroom_window":
+        this.interactWindow(object, true);
     }
   };
 
-  private getInteractiveObject(intersectedObject: THREE.Object3D) {
-    // Is it the intersected object itself?
-    if (this.interactiveItems.includes(intersectedObject.name)) {
-      return intersectedObject;
-    }
-
-    // It could be the parent
-    const parentName = intersectedObject.parent?.name;
-    if (parentName && this.interactiveItems.includes(parentName)) {
-      return intersectedObject.parent;
-    }
-
-    // Otherwise it's not interactive
-    return undefined;
-  }
-
-  private getInteractiveItemName(object: THREE.Object3D) {
-    // Test against this object first
-    if (this.interactiveItems.includes(object.name)) {
-      return object.name;
-    }
-
-    // Then against the parent
-    const name = object.parent?.name;
-    if (!name) {
-      return undefined;
-    }
-
-    return this.interactiveItems.includes(name) ? name : undefined;
-  }
-
   // Inverse = should it open via negative rotation or positive (default)
-  private interactDoor(parent: THREE.Object3D, inverse = false) {
-    const doorRadians = inverse ? -this.doorOpenRadians : this.doorOpenRadians;
+  private interactDoor(object: THREE.Object3D, inverse = false) {
+    const doorTravel = inverse ? -this.doorOpenRadians : this.doorOpenRadians;
 
     // State stored under object data
-    if (parent.userData.open) {
+    if (object.userData.open) {
       // Close it
-      gsap.to(parent.rotation, { duration: 1, y: 0 });
-      parent.userData.open = false;
+      gsap.to(object.rotation, { duration: 1, y: 0 });
+      object.userData.open = false;
     } else {
       // Open it
-      gsap.to(parent.rotation, { duration: 1, y: doorRadians });
-      parent.userData.open = true;
+      gsap.to(object.rotation, { duration: 1, y: doorTravel });
+      object.userData.open = true;
+    }
+  }
+
+  private interactSashWindow(object: THREE.Object3D, top = false) {
+    const windowTravel = top ? -0.3 : 0.3;
+
+    // State stored under object data
+    if (object.userData.open) {
+      // Close it
+      gsap.to(object.position, {
+        duration: 1,
+        y: object.userData.startingPosition,
+      });
+      object.userData.open = false;
+    } else {
+      // Is it's starting position set already?
+      if (!object.userData.startingPosition) {
+        object.userData.startingPosition = object.position.y;
+      }
+
+      // Open it
+      gsap.to(object.position, {
+        duration: 1,
+        y: object.userData.startingPosition + windowTravel,
+      });
+      object.userData.open = true;
+    }
+  }
+
+  private interactWindow(object: THREE.Object3D, inverse = false) {
+    // 30 degrees
+    const windowTravel = inverse ? -0.349066 : 0.349066;
+
+    if (object.userData.open) {
+      // Close it
+      gsap.to(object.rotation, { duration: 1, x: 0 });
+      object.userData.open = false;
+    } else {
+      // Open it
+      gsap.to(object.rotation, { duration: 1, x: windowTravel });
+      object.userData.open = true;
     }
   }
 }
